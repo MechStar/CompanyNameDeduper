@@ -1,3 +1,3 @@
 ﻿var deduper = new CompanyNameDeduper();
-await deduper.ReadInputFromFile("input.txt");
-await deduper.WriteDupsToFile("output.txt");
+await deduper.ReadFromFileAsync("input.txt");
+await deduper.WriteToFileAsync("output.txt");

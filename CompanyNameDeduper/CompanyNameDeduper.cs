@@ -28,7 +28,7 @@ public partial class CompanyNameDeduper
     /// </summary>
     /// <param name="path">Path to file</param>
     /// <returns>True if successful, otherwise False</returns>
-    public async Task<bool> ReadInputFromFile(string path)
+    public async Task<bool> ReadFromFileAsync(string path)
     {
         try
         {
@@ -91,23 +91,31 @@ public partial class CompanyNameDeduper
     /// Writes output file of new-line-delimited potential duplicate company names
     /// </summary>
     /// <param name="path">Path to file</param>
+    /// <param name="type">Type of export</param>
     /// <param name="excludeLiteralDups">Set to exlude literal duplicates, i.e.: "Microsoft" and "Microsoft"</param>
     /// <param name="skipLineAfterDupGroup">Set to skip line after group of potential duplicates</param>
     /// <returns>True if successful, otherwise False</returns>
-    public async Task<bool> WriteDupsToFile(string path, bool excludeLiteralDups = false, bool skipLineAfterDupGroup = false)
+    public async Task<bool> WriteToFileAsync(string path, ExportType type = ExportType.Duplicates, bool excludeLiteralDups = false, bool skipLineAfterDupGroup = false)
     {
         try
         {
             using var writer = new StreamWriter(path);
 
-            // filter out uniques and leave only duplicates (having multiple variations or literal duplicates)
-            var dups = _data.Where(x => x.Value.Count > 1 || x.Value.First().Value > 1);
-
-            foreach (var dup in dups)
+            Func<KeyValuePair<string, Dictionary<string, int>>, bool> filter = type switch
             {
-                foreach (var variation in dup.Value)
+                ExportType.Uniques => x => x.Value.Count == 1 && x.Value.First().Value == 1,
+                ExportType.Duplicates => x => x.Value.Count > 1 || x.Value.First().Value > 1,
+                _ => x => true,
+            };
+
+            // apply appropriate filter
+            var data = _data.Where(filter);
+
+            foreach (var item in data)
+            {
+                foreach (var variation in item.Value)
                 {
-                    for (int i = 0; i < variation.Value; i++)
+                    for (var i = 0; i < variation.Value; i++)
                     {
                         await writer.WriteLineAsync(variation.Key);
 
@@ -131,8 +139,5 @@ public partial class CompanyNameDeduper
     /// <summary>
     /// Clears internal data structure to prepare for new import/dedup/export
     /// </summary>
-    public void ClearMemory()
-    {
-        _data.Clear();
-    }
+    public void ClearMemory() => _data.Clear();
 }
