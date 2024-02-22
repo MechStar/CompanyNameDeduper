@@ -97,16 +97,27 @@ public partial class CompanyNameDeduper
     /// <returns>True if successful, otherwise False</returns>
     public async Task<bool> WriteToFileAsync(string path, ExportType type = ExportType.Duplicates, bool excludeLiteralDups = false, bool skipLineAfterDupGroup = false)
     {
+        return type switch
+        {
+            ExportType.Uniques => await WriteToFileAsync(path, x => x.Value.Count == 1 && x.Value.First().Value == 1, excludeLiteralDups, skipLineAfterDupGroup),
+            ExportType.Duplicates => await WriteToFileAsync(path, x => x.Value.Count > 1 || x.Value.First().Value > 1, excludeLiteralDups, skipLineAfterDupGroup),
+            _ => await WriteToFileAsync(path, x => true, excludeLiteralDups, skipLineAfterDupGroup),
+        };
+    }
+
+    /// <summary>
+    /// Writes output file of new-line-delimited potential duplicate company names
+    /// </summary>
+    /// <param name="path">Path to file</param>
+    /// <param name="filter">Function for filter</param>
+    /// <param name="excludeLiteralDups">Set to exlude literal duplicates, i.e.: "Microsoft" and "Microsoft"</param>
+    /// <param name="skipLineAfterDupGroup">Set to skip line after group of potential duplicates</param>
+    /// <returns>True if successful, otherwise False</returns>
+    public async Task<bool> WriteToFileAsync(string path, Func<KeyValuePair<string, Dictionary<string, int>>, bool> filter, bool excludeLiteralDups = false, bool skipLineAfterDupGroup = false)
+    {
         try
         {
             using var writer = new StreamWriter(path);
-
-            Func<KeyValuePair<string, Dictionary<string, int>>, bool> filter = type switch
-            {
-                ExportType.Uniques => x => x.Value.Count == 1 && x.Value.First().Value == 1,
-                ExportType.Duplicates => x => x.Value.Count > 1 || x.Value.First().Value > 1,
-                _ => x => true,
-            };
 
             // apply appropriate filter
             var data = _data.Where(filter);
