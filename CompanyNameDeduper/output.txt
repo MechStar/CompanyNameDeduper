@@ -9,7 +9,7 @@ ResMed Corp.
 Take Two Interactive Software Inc.
 Take-Two Interactive Software, Inc.
 i'm SpA
-iï¿½m SpA
+i�m SpA
 FilmDistrict Distribution
 FilmDistrict Distribution, LLC
 BlogHer
@@ -40,7 +40,7 @@ Kajeet, Inc.
 Kajeet
 Miracle Hydrate LLC
 Miracle Hydrate
-Schwanï¿½s Consumer Brands, Inc.
+Schwan�s Consumer Brands, Inc.
 Schwan's Consumer Brands, Inc.
 EpicPlay LLC
 EpicPlay
@@ -74,10 +74,10 @@ Verti Technology Group, Inc
 Verti Technology Group, Inc.
 Perrigo Company
 Perrigo Corporation
-Saint Josephï¿½s University
+Saint Joseph�s University
 Saint Joseph's University
 Todays Home
-Todayï¿½s Home Inc.
+Today�s Home Inc.
 Gala Coral Group Limited
 Gala Coral Group
 Smarter Travel Media LLC
@@ -144,7 +144,7 @@ Remax
 RE/MAX, LLC.
 Parent Media Group Inc.
 Parent Media Group, Inc.
-Americaï¿½s Cup Event Authority LLC
+America�s Cup Event Authority LLC
 America's Cup Event Authority LLC
 Wacom
 Wacom Company, Limited
