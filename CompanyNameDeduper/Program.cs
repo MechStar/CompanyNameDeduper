@@ -1,3 +1,29 @@
-﻿var deduper = new CompanyNameDeduper();
-await deduper.ReadFromFileAsync("input.txt");
-await deduper.WriteToFileAsync("output.txt");
+﻿using System.Text.RegularExpressions;
+using StringDeduper;
+using StringDeduper.Helpers;
+
+var companyNameDeduper = new StringDeduperBuilder()
+    .AddNormalizeStrategy(str => MyPattern().Replace(str.ToLowerInvariant(), string.Empty))
+    .AddIgnoredSuffixes(
+    [
+        "ltd",
+        "llc",
+        "limitedliabilitycompany",
+        "limited",
+        "incorporated",
+        "inc",
+        "corporation",
+        "corp",
+        "company",
+        "co"
+    ])
+    .Build();
+
+await companyNameDeduper.ImportStrings(FileUtility.ReadAsync("input.txt"));
+await FileUtility.WriteAsync("output.txt", companyNameDeduper.GetDuplicates(true));
+
+partial class Program
+{
+    [GeneratedRegex("[^a-z0-9]")]
+    private static partial Regex MyPattern();
+}

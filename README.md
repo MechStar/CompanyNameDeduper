@@ -1,27 +1,46 @@
 # CompanyNameDeduper
 
-## Usage
+## Basic Usage
 ```csharp
-var deduper = new CompanyNameDeduper();
-await deduper.ReadFromFileAsync("input.txt");
+using StringDeduper;
+using StringDeduper.Helpers;
 
-// write dups to file (default behavior)
-await deduper.WriteToFileAsync("output.txt");
+var deduper = new StringDeduperBuilder()
+    .Build();
 
-// write uniques to file
-await deduper.WriteToFileAsync("outputUniques.txt", ExportType.Uniques);
+await deduper.ImportStrings(FileUtility.ReadAsync("input.txt"));
+await FileUtility.WriteAsync("output.txt", deduper.GetDuplicates());
+```
 
-// write all to file
-await deduper.WriteToFileAsync("outputUniques.txt", ExportType.All);
+## Advanced Usage
+```csharp
+using System.Text.RegularExpressions;
+using StringDeduper;
+using StringDeduper.Helpers;
 
-// write companies with "google" or "hugo" in the name
-await deduper.WriteToFileAsync("outputGoogleOrHugo1.txt", x => x.Key.Contains("google") || x.Key.Contains("hugo"));
+var companyNameDeduper = new StringDeduperBuilder()
+    .AddNormalizeStrategy(str => MyPattern().Replace(str.ToLowerInvariant(), string.Empty))
+    .AddIgnoredSuffixes(
+    [
+        "ltd",
+        "llc",
+        "limitedliabilitycompany",
+        "limited",
+        "incorporated",
+        "inc",
+        "corporation",
+        "corp",
+        "company",
+        "co"
+    ])
+    .Build();
 
-// write companies with "google" or "hugo" in the name skipping literal dups
-await deduper.WriteToFileAsync("outputGoogleOrHugo2.txt", x => x.Key.Contains("google") || x.Key.Contains("hugo"), true);
+await companyNameDeduper.ImportStrings(FileUtility.ReadAsync("input.txt"));
+await FileUtility.WriteAsync("output.txt", companyNameDeduper.GetDuplicates(true));
 
-// write companies with "google" or "hugo" in the name skipping literal dups and skipping a line between groups
-await deduper.WriteToFileAsync("outputGoogleOrHugo3.txt", x => x.Key.Contains("google") || x.Key.Contains("hugo"), true, true);
-
-deduper.ClearMemory();
+partial class Program
+{
+    [GeneratedRegex("[^a-z0-9]")]
+    private static partial Regex MyPattern();
+}
 ```
