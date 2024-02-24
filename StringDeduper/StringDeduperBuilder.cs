@@ -49,7 +49,7 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
             if (MinStringLength.HasValue && MaxDeviation.HasValue && MinStringLength.Value <= key.Length)
                 key = CheckNeighbors(key, MaxDeviation.Value);
 
-            SaveString(key, str);
+            SaveStringByKey(key, str, MinStringLength.HasValue && MaxDeviation.HasValue);
         }
     }
 
@@ -109,7 +109,7 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
                     yield return item;
     }
 
-    private void SaveString(string key, string value)
+    private void SaveStringByKey(string key, string value, bool saveKeyByLength)
     {
         if (_data.ContainsKey(key))
         {
@@ -127,16 +127,21 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
             _data.Add(key, new Dictionary<string, int> { { value, 1 } });
         }
 
-        if (_keysByLength.ContainsKey(key.Length))
+        if (saveKeyByLength) SaveKeyByLength(key.Length, key);
+    }
+
+    private void SaveKeyByLength(int key, string value)
+    {
+        if (_keysByLength.ContainsKey(key))
         {
-            if (!_keysByLength[key.Length].Contains(key))
+            if (!_keysByLength[key].Contains(value))
             {
-                _keysByLength[key.Length].Add(key);
+                _keysByLength[key].Add(value);
             }
         }
         else
         {
-            _keysByLength.Add(key.Length, [key]);
+            _keysByLength.Add(key, [value]);
         }
     }
 }
