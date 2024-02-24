@@ -6,16 +6,23 @@ var companyNameDeduper = new StringDeduperBuilder()
     .AddNormalizeStrategy(str => MyPattern().Replace(str.ToLowerInvariant(), string.Empty))
     .AddIgnoredSuffixes(
     [
+        "org",
+        "net",
+        "mil",
         "ltd",
         "llc",
         "limitedliabilitycompany",
         "limited",
+        "int",
         "incorporated",
         "inc",
+        "gov",
+        "edu",
         "corporation",
         "corp",
         "company",
-        "co"
+        "com",
+        "co",
     ])
     .Build();
 

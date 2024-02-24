@@ -4,6 +4,8 @@ PCTools
 PC Tools
 Mind Candy
 Mind Candy Ltd.
+Park Springs Communities
+ParkSpringsCommunities.com
 ResMed
 ResMed Corp.
 Take Two Interactive Software Inc.
@@ -18,6 +20,8 @@ Splunk, Inc.
 Splunk Inc.
 Profinity, LLC
 Profinity
+Dex
+Dexcom, Inc.
 Rooms To Go, Inc. 
 Rooms To Go, Inc.
 Hearthware,Inc.
@@ -26,6 +30,8 @@ Speedway Motorsports, Inc.
 Speedway Motorsports
 Align Technology, Inc.
 Align Technology
+MyWedding.com
+MyWedding LLC
 C&A
 CA, Inc.
 Bandoo Media, Inc.
@@ -36,20 +42,32 @@ Simply Wheelz
 SimplyWheelz, LLC
 SolarWinds, Inc.
 SolarWinds Inc.
+LOOP LLC.
+Loopnet
 Kajeet, Inc.
 Kajeet
 Miracle Hydrate LLC
 Miracle Hydrate
 Schwan�s Consumer Brands, Inc.
 Schwan's Consumer Brands, Inc.
+Backyard Liberty
+BackyardLiberty.com
 EpicPlay LLC
 EpicPlay
 Hugo Movie
 Hugo Movie
+Bed Defense
+BedDefense.com
 Michael Foods Company
 Michael Foods, Inc.
+taolasvegas.com
+TAO Las Vegas
+Wix
+Wix.com, Inc.
 Covers Media Group Ltd.
 Covers Media Group
+TheGreensheet.com
+The Greensheet
 Grind Media, LLC
 GrindMedia, LLC.
 The Regents of the University of Michigan
@@ -68,18 +86,28 @@ Sprout Social, Inc.
 Sprout Social
 One Hour Translation
 OneHourTranslation
+InteleTravel.com
+InteleTravel
 upjers GmbH
 upjers GmbH & Co.
 Verti Technology Group, Inc
 Verti Technology Group, Inc.
+PureGreenCoffee.Com
+Pure Green Coffee
 Perrigo Company
 Perrigo Corporation
+Daily Consumer Alerts
+DailyConsumerAlerts.com
 Saint Joseph�s University
 Saint Joseph's University
 Todays Home
 Today�s Home Inc.
+Planet Discover, LLC
+planetdiscover.com
 Gala Coral Group Limited
 Gala Coral Group
+bookit.com
+book-it.org
 Smarter Travel Media LLC
 Smarter Travel Media LLC.
 Pura Cleanse
@@ -92,12 +120,16 @@ Money Expert Ltd.
 moneyExpert Limited
 Regal Assets, LLC
 Regal Assets
+visitscotland.com
+VisitScotland
 CyberPower Inc.
 CyberPower Inc
 Liftopia, Inc.
 Liftopia
 Crain Communications Inc.
 Crain Communications
+HumanEvents.com
+Human Events
 RONA Inc.
 RONA
 Vitamix Corporation
@@ -142,6 +174,8 @@ Blue Star Jets, LLC
 Bluestar Jets
 Remax
 RE/MAX, LLC.
+Canada.com
+Canada Inc.
 Parent Media Group Inc.
 Parent Media Group, Inc.
 America�s Cup Event Authority LLC
@@ -160,12 +194,16 @@ SAGE Publications, Inc.
 SAGE Publications
 CJ E&M Corp
 CJ E&M CORPORATION
+Bluehost.com
+Bluehost, Inc.
 WebMediaBrands
 WebMediaBrands Inc.
 Curves International, Inc.
 Curves International, Inc
 Time, Inc.
 Time Inc.
+EZTrader.com
+EZ Trader
 VAMortgageCenter.com
 VA Mortgage Center.com
 Performance Fabrics Inc
