@@ -1,4 +1,6 @@
 using Quickenshtein;
+using StringDeduper.Enums;
+using StringDeduper.Helpers;
 using StringDeduper.Interfaces;
 
 namespace StringDeduper;
@@ -7,6 +9,7 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
 {
     private Func<string, string>? GetKey;
     private string[]? IgnoredSuffixes;
+    private FuzzyMatchingStrategy? Strategy;
     private int? MinStringLength;
     private int? MaxDeviation;
     private readonly Dictionary<string, Dictionary<string, int>> _data = [];
@@ -24,8 +27,9 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
         return this;
     }
 
-    public IStringDeduperBuilder UseLevenshtein(int minStringLength = 5, int maxDeviation = 1)
+    public IStringDeduperBuilder UseFuzzyMatching(FuzzyMatchingStrategy strategy = FuzzyMatchingStrategy.Levenshtein, int minStringLength = 5, int maxDeviation = 1)
     {
+        Strategy = strategy;
         MinStringLength = minStringLength;
         MaxDeviation = maxDeviation;
         return this;
@@ -46,10 +50,10 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
                 foreach (var suffix in IgnoredSuffixes)
                     key = key.EndsWith(suffix) ? key[..^suffix.Length] : key;
 
-            if (MinStringLength.HasValue && MaxDeviation.HasValue && MinStringLength.Value <= key.Length)
-                key = CheckNeighbors(key, MaxDeviation.Value);
+            if (Strategy != null && MinStringLength.HasValue && MaxDeviation.HasValue && MinStringLength.Value <= key.Length)
+                key = CheckNeighbors(key, MaxDeviation.Value, Strategy.Value);
 
-            SaveStringByKey(key, str, MinStringLength.HasValue && MaxDeviation.HasValue);
+            SaveStringByKey(key, str, Strategy != null && MinStringLength.HasValue && MaxDeviation.HasValue);
         }
     }
 
@@ -87,16 +91,20 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
             yield return item.Value.First().Key;
     }
 
-    private string CheckNeighbors(string key, int maxDeviation)
+    private string CheckNeighbors(string key, int maxDeviation, FuzzyMatchingStrategy strategy)
     {
         var neighbors = GetNeighbors(key.Length, maxDeviation);
 
-        foreach (var neighbor in neighbors)
+        Func<string, string, int, bool> isFuzzyMatch = strategy switch
         {
-            var distance = Levenshtein.GetDistance(key, neighbor);
+            FuzzyMatchingStrategy.Bitap => IsBitapMatch,
+            FuzzyMatchingStrategy.Levenshtein => IsLevenshteinMatch,
+            _ => throw new NotImplementedException()
+        };
 
-            if (distance <= maxDeviation) return neighbor;
-        }
+        foreach (var neighbor in neighbors)
+            if (isFuzzyMatch(key, neighbor, maxDeviation))
+                return neighbor;
 
         return key;
     }
@@ -107,6 +115,23 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
             if (_keysByLength.ContainsKey(i))
                 foreach (var item in _keysByLength[i])
                     yield return item;
+    }
+
+    private bool IsBitapMatch(string str1, string str2, int maxDeviation)
+    {
+        var longerStr = str1.Length >= str2.Length ? str1 : str2;
+        var shorterStr = str1.Length < str2.Length ? str1 : str2;
+
+        var index = StringUtility.SearchString(longerStr, shorterStr, maxDeviation);
+
+        return index > -1;
+    }
+
+    private bool IsLevenshteinMatch(string str1, string str2, int maxDeviation)
+    {
+        var distance = Levenshtein.GetDistance(str1, str2, CalculationOptions.DefaultWithThreading);
+
+        return distance <= maxDeviation;
     }
 
     private void SaveStringByKey(string key, string value, bool saveKeyByLength)
