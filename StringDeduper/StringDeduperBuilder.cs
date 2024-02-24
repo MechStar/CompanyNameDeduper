@@ -1,3 +1,4 @@
+using Quickenshtein;
 using StringDeduper.Interfaces;
 
 namespace StringDeduper;
@@ -6,7 +7,10 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
 {
     private Func<string, string>? GetKey;
     private string[]? IgnoredSuffixes;
+    private int? MinStringLength;
+    private int? MaxDeviation;
     private readonly Dictionary<string, Dictionary<string, int>> _data = [];
+    private readonly Dictionary<int, HashSet<string>> _keysByLength = [];
 
     public IStringDeduperBuilder AddNormalizeStrategy(Func<string, string> getKey)
     {
@@ -17,6 +21,13 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
     public IStringDeduperBuilder AddIgnoredSuffixes(string[]? ignoredSuffixes = default)
     {
         IgnoredSuffixes = ignoredSuffixes;
+        return this;
+    }
+
+    public IStringDeduperBuilder UseLevenshtein(int minStringLength = 3, int maxDeviation = 1)
+    {
+        MinStringLength = minStringLength;
+        MaxDeviation = maxDeviation;
         return this;
     }
 
@@ -34,6 +45,9 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
             if (IgnoredSuffixes != null)
                 foreach (var suffix in IgnoredSuffixes)
                     key = key.EndsWith(suffix) ? key[..^suffix.Length] : key;
+
+            if (MinStringLength.HasValue && MaxDeviation.HasValue && MinStringLength.Value <= key.Length)
+                key = CheckNeighbors(key, MaxDeviation.Value);
 
             SaveString(key, str);
         }
@@ -73,6 +87,28 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
             yield return item.Value.First().Key;
     }
 
+    private string CheckNeighbors(string key, int maxDeviation)
+    {
+        var neighbors = GetNeighbors(key.Length, maxDeviation);
+
+        foreach (var neighbor in neighbors)
+        {
+            var distance = Levenshtein.GetDistance(key, neighbor);
+
+            if (distance <= maxDeviation) return neighbor;
+        }
+
+        return key;
+    }
+
+    private IEnumerable<string> GetNeighbors(int length, int maxDeviation)
+    {
+        for (var i = Math.Max(1, length - maxDeviation); i <= length + maxDeviation; i++)
+            if (_keysByLength.ContainsKey(i))
+                foreach (var item in _keysByLength[i])
+                    yield return item;
+    }
+
     private void SaveString(string key, string value)
     {
         if (_data.ContainsKey(key))
@@ -89,6 +125,18 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
         else
         {
             _data.Add(key, new Dictionary<string, int> { { value, 1 } });
+        }
+
+        if (_keysByLength.ContainsKey(key.Length))
+        {
+            if (!_keysByLength[key.Length].Contains(key))
+            {
+                _keysByLength[key.Length].Add(key);
+            }
+        }
+        else
+        {
+            _keysByLength.Add(key.Length, [key]);
         }
     }
 }

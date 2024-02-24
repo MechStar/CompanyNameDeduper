@@ -24,6 +24,7 @@ var companyNameDeduper = new StringDeduperBuilder()
         "com",
         "co",
     ])
+    .UseLevenshtein()
     .Build();
 
 using var httpClient = new HttpClient();

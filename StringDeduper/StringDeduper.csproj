@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Quickenshtein" Version="1.5.1" />
+  </ItemGroup>
+
 </Project>
