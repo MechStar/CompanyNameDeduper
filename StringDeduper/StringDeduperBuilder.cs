@@ -24,7 +24,7 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
         return this;
     }
 
-    public IStringDeduperBuilder UseLevenshtein(int minStringLength = 3, int maxDeviation = 1)
+    public IStringDeduperBuilder UseLevenshtein(int minStringLength = 5, int maxDeviation = 1)
     {
         MinStringLength = minStringLength;
         MaxDeviation = maxDeviation;
