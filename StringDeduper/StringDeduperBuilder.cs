@@ -10,8 +10,8 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
     private Func<string, string>? GetKey;
     private string[]? IgnoredSuffixes;
     private FuzzyMatchingStrategy? Strategy;
-    private int? MinStringLength;
-    private int? MaxDeviation;
+    private int MinStringLength;
+    private int MaxDeviation;
     private readonly Dictionary<string, Dictionary<string, int>> _data = [];
     private readonly Dictionary<int, HashSet<string>> _keysByLength = [];
 
@@ -50,10 +50,10 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
                 foreach (var suffix in IgnoredSuffixes)
                     key = key.EndsWith(suffix) ? key[..^suffix.Length] : key;
 
-            if (Strategy != null && MinStringLength.HasValue && MaxDeviation.HasValue && MinStringLength.Value <= key.Length)
-                key = CheckNeighbors(key, MaxDeviation.Value, Strategy.Value);
+            if (Strategy != null && MinStringLength <= key.Length)
+                key = CheckNeighbors(key, MaxDeviation, Strategy.Value);
 
-            SaveStringByKey(key, str, Strategy != null && MinStringLength.HasValue && MaxDeviation.HasValue);
+            SaveStringByKey(key, str, Strategy != null);
         }
     }
 
@@ -112,17 +112,17 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
     private IEnumerable<string> GetNeighbors(int length, int maxDeviation)
     {
         for (var i = Math.Max(1, length - maxDeviation); i <= length + maxDeviation; i++)
-            if (_keysByLength.ContainsKey(i))
-                foreach (var item in _keysByLength[i])
-                    yield return item;
+            if (_keysByLength.TryGetValue(i, out var values))
+                foreach (var value in values)
+                    yield return value;
     }
 
     private bool IsBitapMatch(string str1, string str2, int maxDeviation)
     {
-        var longerStr = str1.Length >= str2.Length ? str1 : str2;
-        var shorterStr = str1.Length < str2.Length ? str1 : str2;
+        string[] pair = [str1, str2];
+        pair = [.. pair.OrderByDescending(x => x.Length)];
 
-        var index = StringUtility.SearchString(longerStr, shorterStr, maxDeviation);
+        var index = StringUtility.SearchString(pair.First(), pair.Last(), maxDeviation);
 
         return index > -1;
     }
@@ -136,15 +136,15 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
 
     private void SaveStringByKey(string key, string value, bool saveKeyByLength)
     {
-        if (_data.ContainsKey(key))
+        if (_data.TryGetValue(key, out var variations))
         {
-            if (_data[key].ContainsKey(value))
+            if (variations.TryGetValue(value, out _))
             {
-                _data[key][value]++;
+                variations[value]++;
             }
             else
             {
-                _data[key].Add(value, 1);
+                variations.Add(value, 1);
             }
         }
         else
@@ -157,12 +157,9 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
 
     private void SaveKeyByLength(int key, string value)
     {
-        if (_keysByLength.ContainsKey(key))
+        if (_keysByLength.TryGetValue(key, out var values))
         {
-            if (!_keysByLength[key].Contains(value))
-            {
-                _keysByLength[key].Add(value);
-            }
+            values.Add(value);
         }
         else
         {
