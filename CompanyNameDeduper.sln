@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompanyNameDeduper", "CompanyNameDeduper\CompanyNameDeduper.csproj", "{267EA9F5-B00F-48DB-9C32-46D910A2FEF0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StringDeduper", "StringDeduper\StringDeduper.csproj", "{0B44855E-5333-47C7-9464-8A910AF79DCA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{267EA9F5-B00F-48DB-9C32-46D910A2FEF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{267EA9F5-B00F-48DB-9C32-46D910A2FEF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{267EA9F5-B00F-48DB-9C32-46D910A2FEF0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B44855E-5333-47C7-9464-8A910AF79DCA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B44855E-5333-47C7-9464-8A910AF79DCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B44855E-5333-47C7-9464-8A910AF79DCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B44855E-5333-47C7-9464-8A910AF79DCA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
