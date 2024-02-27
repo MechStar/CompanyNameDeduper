@@ -23,6 +23,7 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
     public IStringDeduperBuilder AddNormalizeStrategy(Func<string, string> getKey)
     {
         GetKey = getKey;
+
         return this;
     }
 
@@ -31,9 +32,10 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
     /// </summary>
     /// <param name="ignoredSuffixes">Array of string suffixes in order of removal</param>
     /// <returns>IStringDeduperBuilder</returns>
-    public IStringDeduperBuilder AddIgnoredSuffixes(string[]? ignoredSuffixes = default)
+    public IStringDeduperBuilder AddIgnoredSuffixes(string[] ignoredSuffixes)
     {
         IgnoredSuffixes = ignoredSuffixes;
+
         return this;
     }
 
@@ -41,14 +43,18 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
     /// Builder method that adds fuzzy matching strategy to be used for deduplication, which changes import complexity from O(n) to O(n^2)
     /// </summary>
     /// <param name="strategy">Levenshtein strategy is default, but Bitap strategy can be used instead</param>
-    /// <param name="minStringLength">Minimum string length of resulting key to qualify for fuzzy matching</param>
-    /// <param name="maxDeviation">Maximum distance between strings or deviation in length</param>
+    /// <param name="minStringLength">Minimum string length of resulting key to qualify for fuzzy matching (minimum value is 1)</param>
+    /// <param name="maxDeviation">Maximum distance between strings or deviation in length (minimum value is 1)</param>
     /// <returns>IStringDeduperBuilder</returns>
     public IStringDeduperBuilder UseFuzzyMatching(FuzzyMatchingStrategy strategy = FuzzyMatchingStrategy.Levenshtein, int minStringLength = 5, int maxDeviation = 1)
     {
+        if (minStringLength < 1) throw new ArgumentOutOfRangeException(nameof(minStringLength), "Must be greater than or equals to 1.");
+        if (maxDeviation < 1) throw new ArgumentOutOfRangeException(nameof(maxDeviation), "Must be greater than or equals to 1.");
+
         Strategy = strategy;
         MinStringLength = minStringLength;
         MaxDeviation = maxDeviation;
+
         return this;
     }
 
@@ -58,6 +64,9 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
     /// <returns>IStringDeduperService</returns>
     public IStringDeduperService Build()
     {
+        // apply same normalize strategy to ignored suffixes at build time
+        IgnoredSuffixes = IgnoredSuffixes?.Select(x => GetKey is not null ? GetKey(x) : x).OrderByDescending(x => x).ToArray();
+
         return this;
     }
 
@@ -71,19 +80,19 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
         await foreach (var str in input)
         {
             // if specified, use normalize strategy to generate key
-            var key = GetKey == null ? str : GetKey(str);
+            var key = GetKey is not null ? GetKey(str) : str;
 
             // if specified, loop through suffixes to remove ignored
-            if (IgnoredSuffixes != null)
+            if (IgnoredSuffixes is not null)
                 foreach (var suffix in IgnoredSuffixes)
                     key = key.EndsWith(suffix) ? key[..^suffix.Length] : key;
 
             // if specified, use fuzzy matching strategy to improve key
-            if (Strategy != null && MinStringLength <= key.Length)
+            if (Strategy is not null && MinStringLength <= key.Length)
                 key = CheckNeighbors(key, MaxDeviation, Strategy.Value);
 
             // save key/value, and optionally length/key for fuzzy matching
-            SaveStringByKey(key, str, Strategy != null);
+            SaveStringByKey(key, str, Strategy is not null);
         }
     }
 
@@ -96,6 +105,7 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
     /// <returns>Returns list of strings as IEnumerable to defer execution until enumeration</returns>
     public IEnumerable<string> GetDuplicates(bool includeOriginal = false, bool excludeRepeats = false, bool addEmptyString = false)
     {
+        // filter out uniques and leave only duplicates (having literal duplicates or multiple variations)
         var data = _data.Where(x => x.Value.First().Value > 1 || x.Value.Count > 1);
 
         foreach (var item in data)
@@ -108,14 +118,17 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
 
                 for (var j = 0; j < variationFrequency; j++)
                 {
+                    // if include first
                     if (!includeOriginal && i == 0 && j == 0) continue;
 
                     yield return variations.ElementAt(i).Key;
 
+                    // if skip repeats
                     if (excludeRepeats) break;
                 }
             }
 
+            // if add delimiter
             if (addEmptyString) yield return string.Empty;
         }
     }
@@ -123,10 +136,11 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
     /// <summary>
     /// Applies filter to normalized data in memory to return uniques as IEnumerable (defer execution until enumeration)
     /// </summary>
-    /// <param name="restrictToUniqueInput">Restricts output to only unique items in original input, as opposed to deduplicated uniques, default is False</param>
+    /// <param name="restrictToUniqueInput">Restricts to items already unique in original input, as opposed to deduplicated uniques, default is False</param>
     /// <returns>Returns list of strings as IEnumerable to defer execution until enumeration</returns>
     public IEnumerable<string> GetUniques(bool restrictToUniqueInput = false)
     {
+        // filter out duplicates and leave only uniques (optionally restrict to items already unique on input)
         var data = _data.Where(x => !restrictToUniqueInput || (x.Value.First().Value == 1 && x.Value.Count == 1));
 
         foreach (var item in _data)
@@ -146,7 +160,7 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
         var neighbors = GetNeighbors(key.Length, maxDeviation);
 
         // change strategy based on specified parameter
-        Func<string, string, int, bool> isFuzzyMatch = strategy switch
+        Func<string, string, int, bool> IsFuzzyMatch = strategy switch
         {
             FuzzyMatchingStrategy.Bitap => IsBitapMatch,
             FuzzyMatchingStrategy.Levenshtein => IsLevenshteinMatch,
@@ -155,7 +169,7 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
 
         // if fuzzy matched to existing key, use that instead
         foreach (var neighbor in neighbors)
-            if (isFuzzyMatch(key, neighbor, maxDeviation))
+            if (IsFuzzyMatch(key, neighbor, maxDeviation))
                 return neighbor;
 
         return key;
@@ -194,7 +208,7 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
     }
 
     /// <summary>
-    /// Attempts to fuzzy match two strings using Levenshtein algorithm (maximum replacements)
+    /// Attempts to fuzzy match two strings using Levenshtein algorithm (minimum replacements)
     /// </summary>
     /// <param name="str1">First string</param>
     /// <param name="str2">Second string</param>
@@ -250,5 +264,14 @@ public class StringDeduperBuilder : IStringDeduperBuilder, IStringDeduperService
         {
             _keysByLength.Add(key, [value]);
         }
+    }
+
+    /// <summary>
+    /// Clears internal data structures to prepare for new import/dedup/export
+    /// </summary>
+    public void ClearMemory()
+    {
+        _data.Clear();
+        _keysByLength.Clear();
     }
 }
